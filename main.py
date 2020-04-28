@@ -39,10 +39,16 @@ def write_status(lines) :
         except :
             pass
 
-def pathfinding_onkeypress(key,node) :
-    if key==pygame.K_ESCAPE : grid.signalClose()
-
 ###pathfinding
+
+step = False
+runAll = False
+
+def pathfinding_onkeypress(key,node) :
+    global step,runAll
+    if key==pygame.K_ESCAPE : grid.signalClose()
+    if key==pygame.K_SPACE : step = True
+    if key==pygame.K_1 : runAll = True
 
 def get_neighbors_4dir(node) :
     neighbors = []
@@ -75,6 +81,7 @@ class PQ :
         return len(self.elements)
 
 def astar() :
+    global step,runAll
     if source is None or target is None :
         print("Please define source and target")
         return
@@ -99,9 +106,11 @@ def astar() :
     vcount=0
     finaldist="Computing..."
 
+    u = None
+
     grid.open()
     while True :
-        if not(found) and not(q.empty()) :
+        if not(found) and not(q.empty()) and (step or runAll) :
             u = q.get()
             vcount+=1
             if u.target :
@@ -122,17 +131,21 @@ def astar() :
         if not(found) and (q.empty) :
             finaldist = "NO PATH"
 
-        if not(done) and found :
+        if not(done) and found and (step or runAll) :
             t = t.parent
             if t==s : done = True
             else : t.image.fill((255,0,0))
+        
+        step = False
 
         write_status([
             "A* Algorithm...",
             f"Queue size: {q.size()}",
             f"Visited nodes: {vcount}",
             f"Distance from s to t: {finaldist}",
-            f"Visiting node: ({u.i},{u.j})",
+            f"Visiting node: ({u.i if u is not None else source[0]},{u.j if u is not None else source[1]})",
+            "Press SPACEBAR to step",
+            "Press 1 to run",
             '',
             '',
             "Press ESC to exit"
@@ -223,7 +236,9 @@ def edit_onkeypress(key,node) :
             target = (n.i,n.j)
 
 def grid_start() :
+    global step,runAll
     while True :
+        step,runAll = False,False
         print(f"""Please input an option:
 e/> edit obstacles and source/end point
 f/> set fps
